@@ -12,8 +12,8 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
     } else {
         Daotoken = "0xxxx";
     }
-    const args = [Daotoken.address]
-    const nftmarketplace = await deploy("Dao", {
+    const args = [deployer,Daotoken.address]
+    const doa = await deploy("Dao", {
         from: deployer,
         args:args,
         log: true,

@@ -12,10 +12,10 @@ contract Dao {
     DAOToken public daoToken;
 
     // The minimum amount of tokens required to create a proposal
-    uint256 public constant MIN_PROPOSAL_THRESHOLD = 1000 * 10**18; //1000000000000000000000
+    uint256 public constant MIN_PROPOSAL_THRESHOLD = 1000 * 10 ** 18; //1000000000000000000000
 
     // The minimum amount of tokens required to vote on a proposal
-    uint256 public constant MIN_VOTING_THRESHOLD = 100 * 10**18; //100,000,000,000,000,000,000
+    uint256 public constant MIN_VOTING_THRESHOLD = 100 * 10 ** 18; //100,000,000,000,000,000,000
 
     // Proposal struct
     struct Proposal {
@@ -31,7 +31,7 @@ contract Dao {
         uint256 noVotes;
         bool executed;
     }
-    address public immutable i_owner;
+    address private immutable i_owner;
     // Array of all proposals
     Proposal[] private proposals;
     mapping(uint256 => mapping(address => bool)) proposalVoters;
@@ -53,14 +53,22 @@ contract Dao {
         uint256 amount
     );
 
+    // Event for a Vote proposal
+    event VoteEvent(
+        uint256 indexed proposalId,
+        address indexed voter,
+        bool support,
+        uint256 voterWeight
+    );
+
     modifier onlyOwner() {
         require(msg.sender == i_owner, "Only the owner can call this function");
         _;
     }
 
-    constructor(DAOToken _daoToken) {
+    constructor(address _owner, DAOToken _daoToken) {
         daoToken = _daoToken;
-        i_owner = msg.sender;
+        i_owner = _owner;
     }
 
     //provide description, required amount,reciver
@@ -121,6 +129,7 @@ contract Dao {
             proposal.noVotes += voterWeight;
         }
         proposalVoters[_proposalId][msg.sender] = true;
+        emit VoteEvent(_proposalId, msg.sender, _support, voterWeight);
     }
 
     // Function to execute a proposal
@@ -136,7 +145,7 @@ contract Dao {
             "Proposal has not reached majority support"
         );
         // proposal.recipient.transfer(proposal.amount);
-        proposal.recipient.transfer(proposal.amount);
+        daoToken.transfer(proposal.recipient, proposal.amount);
         proposal.executed = true;
         activeProposals[proposal.proposer] = false;
         emit ProposalExecuted(
@@ -149,13 +158,19 @@ contract Dao {
 
     // Function to withdraw funds from the DAO
     function withdraw(uint256 _amount) external onlyOwner {
-     payable(i_owner).transfer(_amount);
+        daoToken.transfer(i_owner, _amount);
     }
 
     function getAllProposals() external view returns (Proposal[] memory) {
         return proposals;
     }
 
+    function getOwner() public view returns (address) {
+        return i_owner;
+    }
+
     // Fallback function to accept Ether
     receive() external payable {}
+
+    fallback() external payable {}
 }
