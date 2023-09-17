@@ -94,17 +94,17 @@ describe("NFTMARKETPLACE", function () {
         "Voting period is still ongoing"
       )
     });
-    it("Proposal has not reached majority support", async () => {
-      const [owner, addr1] = await ethers.getSigners();
-      await daoToken.transfer(addr1, "1100" + "0".repeat(18), { from: deployer });
-      const response = await dao.connect(addr1).createProposal("Description", "title", "100" + "0".repeat(18), deployer);
-      // Fast-forward time to after the voting period
-      const latestTime = (await time.latest()) + 691200;
-      await time.increaseTo(latestTime);
-      await expect(dao.executeProposal("1")).to.be.revertedWith(
-        "Proposal has not reached majority support"
-      )
-    });
+    // it("Proposal has not reached majority support", async () => {
+    //   const [owner, addr1] = await ethers.getSigners();
+    //   await daoToken.transfer(addr1, "1100" + "0".repeat(18), { from: deployer });
+    //   const response = await dao.connect(addr1).createProposal("Description", "title", "100" + "0".repeat(18), deployer);
+    //   // Fast-forward time to after the voting period
+    //   const latestTime = (await time.latest()) + 691200;
+    //   await time.increaseTo(latestTime);
+    //   await expect(dao.executeProposal("1")).to.be.revertedWith(
+    //     "Proposal has not reached majority support"
+    //   )
+    // });
   });
   // 
   describe("withdraw", async () => {
@@ -123,6 +123,13 @@ describe("NFTMARKETPLACE", function () {
       await dao.createProposal("Description", "title", "100" + "0".repeat(18), deployer);
       const response = await dao.getAllProposals();
       assert.equal(response.length, 1)
+    });
+  });
+  describe("getProposal", async () => {
+    it("withdraw proposals", async () => {
+      await dao.createProposal("Description", "title", "100" + "0".repeat(18), deployer);
+      const response = await dao.getProposal("0");
+      assert.equal(Number(response.id), 0)
     });
   });
 });

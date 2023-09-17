@@ -6,25 +6,21 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
     const { deploy, log } = deployments
     const { deployer } = await getNamedAccounts();
     const chainId = network.config.chainId;
-    let Daotoken
-    if (developmentChains.includes(network.name)) {
-        Daotoken = await deployments.get("DAOToken")
-    } else {
-        Daotoken = "0xxxx";
-    }
-    const args = [deployer,Daotoken.address]
+    const Daotoken = await deployments.get("DAOToken")
+    const args = [deployer, Daotoken.address]
     const doa = await deploy("Dao", {
         from: deployer,
-        args:args,
+        args: args,
         log: true,
         waitConfirmations: network.config.blockConfirmations || 1,
     })
     log("________________________________")
+    const verifyArgs = [deployer, Daotoken.address];
     if (
         !developmentChains.includes(network.name) &&
         process.env.ETHERSCAN_API_KEY
     ) {
-        await verify(args)
+        await verify(doa.address, args)
     }
 }
 module.exports.tags = ["all"]

@@ -15,7 +15,7 @@ contract Dao {
     uint256 public constant MIN_PROPOSAL_THRESHOLD = 1000 * 10 ** 18; //1000000000000000000000
 
     // The minimum amount of tokens required to vote on a proposal
-    uint256 public constant MIN_VOTING_THRESHOLD = 100 * 10 ** 18; //100,000,000,000,000,000,000
+    uint256 public constant MIN_VOTING_THRESHOLD = 1 * 10 ** 18; //1,000,000,000,000,000,000
 
     // Proposal struct
     struct Proposal {
@@ -95,7 +95,7 @@ contract Dao {
             amount: _amount,
             recipient: _recipient,
             startTime: block.timestamp,
-            endTime: block.timestamp + 7 days,
+            endTime: block.timestamp + 10 minutes,
             yesVotes: 0,
             noVotes: 0,
             executed: false
@@ -140,14 +140,15 @@ contract Dao {
             block.timestamp > proposal.endTime,
             "Voting period is still ongoing"
         );
-        require(
-            proposal.yesVotes > proposal.noVotes,
-            "Proposal has not reached majority support"
-        );
-        // proposal.recipient.transfer(proposal.amount);
-        daoToken.transfer(proposal.recipient, proposal.amount);
-        proposal.executed = true;
+        // require(
+        //     proposal.yesVotes > proposal.noVotes,
+        //     "Proposal has not reached majority support"
+        // );
+        if (proposal.yesVotes > proposal.noVotes) {
+            daoToken.transfer(proposal.recipient, proposal.amount);
+        }
         activeProposals[proposal.proposer] = false;
+        proposal.executed = true;
         emit ProposalExecuted(
             _proposalId,
             proposal.proposer,
@@ -163,6 +164,14 @@ contract Dao {
 
     function getAllProposals() external view returns (Proposal[] memory) {
         return proposals;
+    }
+
+    function getProposal(uint256 id) external view returns (Proposal memory) {
+        return proposals[id];
+    }
+
+    function getProposalsCount() external view returns (uint256) {
+        return proposals.length;
     }
 
     function getOwner() public view returns (address) {
